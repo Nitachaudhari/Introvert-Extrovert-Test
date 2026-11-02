@@ -5,10 +5,11 @@ const buildCorsOptions = () => {
     'http://localhost:5173',
     'http://127.0.0.1:5173',
     'http://localhost:3000',
+    'https://introvertextrovert.netlify.app',
   ];
 
   if (process.env.FRONTEND_URL) {
-    const customOrigins = process.env.FRONTEND_URL.split(',').map((o) => o.trim());
+    const customOrigins = process.env.FRONTEND_URL.split(',').map((o) => o.trim().replace(/\/$/, ''));
     allowedOrigins.push(...customOrigins);
   }
 
@@ -17,19 +18,26 @@ const buildCorsOptions = () => {
       // Allow requests with no origin (like mobile apps, curl, Postman, or server-to-server)
       if (!origin) return callback(null, true);
 
-      const isAllowed = allowedOrigins.some((allowed) => {
-        if (allowed === origin) return true;
-        // Allow Netlify preview domains or exact matches
-        if (allowed.includes('*')) {
-          const regex = new RegExp(`^${allowed.replace('*', '.*')}$`);
-          return regex.test(origin);
+      const cleanOrigin = origin.replace(/\/$/, '');
+
+      // Check explicit allowed list
+      const isExplicitlyAllowed = allowedOrigins.some((allowed) => {
+        const cleanAllowed = allowed.replace(/\/$/, '');
+        if (cleanAllowed === cleanOrigin) return true;
+        if (cleanAllowed.includes('*')) {
+          const regex = new RegExp(`^${cleanAllowed.replace('*', '.*')}$`);
+          return regex.test(cleanOrigin);
         }
         return false;
       });
 
-      if (isAllowed || process.env.NODE_ENV !== 'production') {
+      // Allow official project Netlify domains
+      const isNetlifyDomain = /^https:\/\/[a-zA-Z0-9-]+\.netlify\.app$/.test(cleanOrigin);
+
+      if (isExplicitlyAllowed || isNetlifyDomain || process.env.NODE_ENV !== 'production') {
         callback(null, true);
       } else {
+        console.warn(`[CORS Blocked] Origin not allowed: ${origin}`);
         callback(new Error(`CORS policy blocks access from origin: ${origin}`));
       }
     },
@@ -41,4 +49,5 @@ const buildCorsOptions = () => {
 };
 
 module.exports = cors(buildCorsOptions());
+
 
