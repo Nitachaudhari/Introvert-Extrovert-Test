@@ -10,6 +10,7 @@ const corsMiddleware = require('./src/middleware/corsConfig');
 const { notFoundHandler, errorHandler } = require('./src/middleware/errorHandler');
 const { connectDB } = require('./src/config/db');
 const healthRoutes = require('./src/routes/healthRoutes');
+const dashboardRoutes = require('./src/routes/dashboardRoutes');
 
 // Environment variable validation
 const validateEnvironment = () => {
@@ -50,6 +51,7 @@ app.get('/', (req, res) => {
       health: '/api/health',
       dbHealth: '/api/db-health',
       testConnection: '/api/test-connection',
+      dashboardSummary: '/api/dashboard/summary',
     },
     status: 'online',
   });
@@ -57,6 +59,7 @@ app.get('/', (req, res) => {
 
 // API Routes
 app.use('/api', healthRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 // Error Handling Middlewares
 app.use(notFoundHandler);
@@ -64,15 +67,15 @@ app.use(errorHandler);
 
 // Start Server and Database Connection
 const startServer = async () => {
-  // Attempt DB connection
-  await connectDB();
-
   const server = app.listen(PORT, () => {
     console.log(`🚀 Backend Server running in [${process.env.NODE_ENV || 'development'}] mode on port ${PORT}`);
     console.log(`📡 Health Check: http://localhost:${PORT}/api/health`);
     console.log(`🗄️  DB Health Check: http://localhost:${PORT}/api/db-health`);
     console.log(`🔗 Full Test Check: http://localhost:${PORT}/api/test-connection`);
   });
+
+  // Attempt DB connection
+  connectDB();
 
   // Graceful shutdown
   const gracefulShutdown = (signal) => {

@@ -84,5 +84,29 @@ export const fetchTestConnection = async () => {
   }
 };
 
+/**
+ * Fetch Dashboard Aggregated Summary: GET /api/dashboard/summary
+ */
+export const fetchDashboardSummary = async () => {
+  try {
+    const startTime = performance.now();
+    const response = await apiClient.get('/api/dashboard/summary');
+    const latency = Math.round(performance.now() - startTime);
+    return {
+      success: true,
+      data: response.data.data,
+      latency,
+      status: response.status,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      data: null,
+      error: error.response?.data?.message || error.message || 'Failed to fetch dashboard data',
+      status: error.response?.status || 0,
+    };
+  }
+};
+
 export default apiClient;
 

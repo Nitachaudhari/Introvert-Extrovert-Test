@@ -1,0 +1,203 @@
+import React, { useState } from 'react';
+import { NavLink, useLocation, Link } from 'react-router-dom';
+import {
+  LayoutDashboard,
+  Users,
+  FilePlus,
+  ClipboardList,
+  BrainCircuit,
+  FileText,
+  BarChart3,
+  UserCog,
+  Settings,
+  Menu,
+  X,
+  Search,
+  Bell,
+  ShieldCheck,
+  Activity,
+  ChevronRight,
+} from 'lucide-react';
+import useSystemStatus from '../hooks/useSystemStatus';
+
+const navigationItems = [
+  { name: 'Dashboard', path: '/', icon: LayoutDashboard },
+  { name: 'Patients', path: '/patients', icon: Users },
+  { name: 'New Assessment', path: '/assessments/new', icon: FilePlus },
+  { name: 'All Assessments', path: '/assessments', icon: ClipboardList },
+  { name: 'K.I.E.I. Test', path: '/kiei-test', icon: BrainCircuit },
+  { name: 'Reports', path: '/reports', icon: FileText },
+  { name: 'Analytics', path: '/analytics', icon: BarChart3 },
+  { name: 'User Management', path: '/users', icon: UserCog },
+  { name: 'Settings', path: '/settings', icon: Settings },
+];
+
+export const ClinicalLayout = ({ children }) => {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const location = useLocation();
+  const { dbState } = useSystemStatus(30000);
+
+  return (
+    <div className="min-h-screen bg-slate-50 flex font-sans text-slate-800 antialiased">
+      {/* Mobile Sidebar Overlay */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-slate-900/40 backdrop-blur-sm lg:hidden transition-opacity"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* Sidebar Navigation */}
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-slate-200 flex flex-col transform transition-transform duration-200 ease-in-out lg:translate-x-0 ${
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
+        {/* Brand / Logo Header */}
+        <div className="h-16 px-5 border-b border-slate-200 flex items-center justify-between">
+          <Link to="/" className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-lg bg-brand-600 flex items-center justify-center text-white shadow-sm">
+              <Activity className="w-5 h-5" />
+            </div>
+            <div>
+              <span className="font-bold text-slate-900 text-sm tracking-tight block">
+                Psychometric
+              </span>
+              <span className="text-[11px] font-semibold text-brand-600 uppercase tracking-wider block -mt-0.5">
+                Assessment System
+              </span>
+            </div>
+          </Link>
+          <button
+            onClick={() => setSidebarOpen(false)}
+            className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 lg:hidden"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Clinical Sidebar Menu */}
+        <div className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
+          <div className="px-3 pb-2 text-[11px] font-bold tracking-wider text-slate-400 uppercase">
+            Clinical Navigation
+          </div>
+          {navigationItems.map((item) => {
+            const Icon = item.icon;
+            const isActive =
+              item.path === '/'
+                ? location.pathname === '/'
+                : location.pathname.startsWith(item.path);
+
+            return (
+              <NavLink
+                key={item.name}
+                to={item.path}
+                onClick={() => setSidebarOpen(false)}
+                className={`flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-semibold transition-all ${
+                  isActive
+                    ? 'bg-brand-50 text-brand-700 shadow-sm border border-brand-100'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <Icon
+                    className={`w-4 h-4 ${
+                      isActive ? 'text-brand-600' : 'text-slate-400'
+                    }`}
+                  />
+                  <span>{item.name}</span>
+                </div>
+                {isActive && <ChevronRight className="w-3.5 h-3.5 text-brand-500" />}
+              </NavLink>
+            );
+          })}
+        </div>
+
+        {/* Sidebar Footer: System Status */}
+        <div className="p-3 border-t border-slate-200 bg-slate-50">
+          <Link
+            to="/status"
+            className="flex items-center justify-between p-2.5 rounded-lg bg-white border border-slate-200 hover:border-slate-300 transition-colors shadow-xs"
+          >
+            <div className="flex items-center gap-2">
+              <span
+                className={`w-2.5 h-2.5 rounded-full ${
+                  dbState.status === 'connected' ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'
+                }`}
+              />
+              <span className="text-[11px] font-medium text-slate-700">
+                {dbState.status === 'connected' ? 'MongoDB Atlas Live' : 'Database Checking'}
+              </span>
+            </div>
+            <span className="text-[10px] font-semibold text-brand-600 hover:underline">
+              Diagnostics
+            </span>
+          </Link>
+        </div>
+      </aside>
+
+      {/* Main Content Area */}
+      <div className="flex-1 lg:pl-64 flex flex-col min-w-0">
+        {/* Top Navigation Bar */}
+        <header className="h-16 bg-white border-b border-slate-200 sticky top-0 z-30 flex items-center justify-between px-4 sm:px-6">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="p-2 rounded-lg text-slate-500 hover:bg-slate-100 lg:hidden"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+            <div className="relative hidden sm:block w-72">
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Search patient, ID, or assessment..."
+                className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-9 pr-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-brand-500 focus:border-brand-500"
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 sm:gap-4">
+            <div className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
+              <ShieldCheck className="w-3.5 h-3.5" />
+              <span>HIPAA-Ready Architecture</span>
+            </div>
+
+            <button
+              className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 relative"
+              title="Notifications"
+            >
+              <Bell className="w-4 h-4" />
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-brand-600" />
+            </button>
+
+            <div className="h-6 w-px bg-slate-200" />
+
+            {/* Clinician Profile */}
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-full bg-brand-100 text-brand-700 font-bold flex items-center justify-center text-xs border border-brand-200">
+                CP
+              </div>
+              <div className="hidden sm:block text-left">
+                <span className="block text-xs font-bold text-slate-800 leading-tight">
+                  Dr. Psychologist
+                </span>
+                <span className="block text-[10px] text-slate-500 font-medium">
+                  Lead Psychometrist
+                </span>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        {/* Content Body */}
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
+          {children}
+        </main>
+      </div>
+    </div>
+  );
+};
+
+export default ClinicalLayout;
+

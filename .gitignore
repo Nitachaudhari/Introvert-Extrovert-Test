@@ -16,6 +16,7 @@ node_modules/
 dist/
 build/
 .output/
+scratch/
 
 # Logs
 npm-debug.log*
