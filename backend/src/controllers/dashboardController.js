@@ -22,8 +22,12 @@ const getDashboardSummary = async (req, res, next) => {
       TestSession.countDocuments({ status: 'completed' }),
       TestSession.countDocuments({ status: { $in: ['pending', 'in_progress'] } }),
       AssessmentReport.countDocuments(),
-      Patient.find().sort({ createdAt: -1 }).limit(5).select('-clinicalNotes'),
+      Patient.find()
+        .select('fullName patientId gender age registrationDate createdAt')
+        .sort({ createdAt: -1 })
+        .limit(5),
       TestSession.find()
+        .select('sessionId administrationMethod status startedAt completedAt')
         .populate('patient', 'fullName patientId gender age mobile')
         .sort({ updatedAt: -1 })
         .limit(5),
@@ -56,23 +60,6 @@ const getDashboardSummary = async (req, res, next) => {
       { $sort: { '_id.year': 1, '_id.month': 1 } },
     ]);
 
-    // Personality Distribution (only verified completed tests)
-    const distributionStats = await TestSession.aggregate([
-      {
-        $match: {
-          status: 'completed',
-          classification: { $ne: null },
-        },
-      },
-      {
-        $group: {
-          _id: '$classification',
-          count: { $sum: 1 },
-        },
-      },
-      { $sort: { count: -1 } },
-    ]);
-
     res.status(200).json({
       success: true,
       data: {
@@ -86,7 +73,6 @@ const getDashboardSummary = async (req, res, next) => {
         recentPatients,
         recentAssessments,
         monthlyStats,
-        distributionStats,
         timestamp: new Date().toISOString(),
       },
     });
@@ -98,4 +84,3 @@ const getDashboardSummary = async (req, res, next) => {
 module.exports = {
   getDashboardSummary,
 };
-

@@ -11,6 +11,10 @@ const { notFoundHandler, errorHandler } = require('./src/middleware/errorHandler
 const { connectDB } = require('./src/config/db');
 const healthRoutes = require('./src/routes/healthRoutes');
 const dashboardRoutes = require('./src/routes/dashboardRoutes');
+const authRoutes = require('./src/routes/authRoutes');
+const patientRoutes = require('./src/routes/patientRoutes');
+const assessmentRoutes = require('./src/routes/assessmentRoutes');
+const reportRoutes = require('./src/routes/reportRoutes');
 
 // Environment variable validation
 const validateEnvironment = () => {
@@ -21,9 +25,12 @@ const validateEnvironment = () => {
   if (!process.env.MONGODB_URI) {
     missing.push('MONGODB_URI');
   }
+  if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32) {
+    missing.push('JWT_SECRET (at least 32 characters)');
+  }
   if (missing.length > 0) {
     console.warn(`⚠️  Warning: Missing environment variable(s): ${missing.join(', ')}`);
-    console.warn('   Update backend/.env with your MongoDB Atlas connection string.');
+    console.warn('   Update backend/.env with the required database and authentication configuration.');
   }
 };
 
@@ -59,6 +66,10 @@ app.get('/', (req, res) => {
 
 // API Routes
 app.use('/api', healthRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/patients', patientRoutes);
+app.use('/api/assessments', assessmentRoutes);
+app.use('/api/reports', reportRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 
 // Error Handling Middlewares
@@ -90,7 +101,8 @@ const startServer = async () => {
   process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 };
 
-startServer();
+if (require.main === module) {
+  startServer();
+}
 
 module.exports = app;
-

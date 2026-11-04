@@ -1,48 +1,44 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  Users,
-  ClipboardList,
-  CheckCircle2,
-  Clock,
-  FileText,
-  UserPlus,
-  PlayCircle,
-  RefreshCw,
-  TrendingUp,
-  Brain,
+  AlertCircle,
   ArrowRight,
-  ShieldAlert,
-  Calendar,
+  ClipboardList,
+  Clock3,
+  FileText,
+  RefreshCw,
+  Users,
+  CheckCircle2,
+  Sparkles,
 } from 'lucide-react';
 import { fetchDashboardSummary } from '../services/api';
 
-export const DashboardView = () => {
-  const [loading, setLoading] = useState(true);
-  const [data, setData] = useState({
-    cards: {
-      totalPatients: 0,
-      totalAssessments: 0,
-      completedTests: 0,
-      pendingTests: 0,
-      totalReports: 0,
-    },
-    recentPatients: [],
-    recentAssessments: [],
-    monthlyStats: [],
-    distributionStats: [],
+const getRecentMonths = (monthlyStats) => {
+  const counts = new Map(
+    monthlyStats.map((item) => [`${item._id.year}-${item._id.month}`, item.count])
+  );
+  const today = new Date();
+  return Array.from({ length: 6 }, (_, index) => {
+    const date = new Date(today.getFullYear(), today.getMonth() - 5 + index, 1);
+    const key = `${date.getFullYear()}-${date.getMonth() + 1}`;
+    return {
+      label: new Intl.DateTimeFormat(undefined, { month: 'short' }).format(date),
+      count: counts.get(key) || 0,
+    };
   });
-  const [error, setError] = useState(null);
+};
+
+const DashboardView = () => {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   const loadData = useCallback(async () => {
     setLoading(true);
-    setError(null);
-    const res = await fetchDashboardSummary();
-    if (res.success && res.data) {
-      setData(res.data);
-    } else {
-      setError(res.error);
-    }
+    setError('');
+    const result = await fetchDashboardSummary();
+    if (result.success && result.data) setData(result.data);
+    else setError(result.error || 'Unable to load dashboard data.');
     setLoading(false);
   }, []);
 
@@ -50,325 +46,209 @@ export const DashboardView = () => {
     loadData();
   }, [loadData]);
 
+  const months = useMemo(() => getRecentMonths(data?.monthlyStats || []), [data]);
+  const maxMonthlyCount = Math.max(1, ...months.map((month) => month.count));
   const cards = [
-    {
-      title: 'Total Patients',
-      value: data.cards.totalPatients,
-      icon: Users,
-      color: 'text-brand-600',
-      bgColor: 'bg-brand-50 border-brand-100',
-      badge: 'Active Roster',
-    },
-    {
-      title: 'Total Assessments',
-      value: data.cards.totalAssessments,
-      icon: ClipboardList,
-      color: 'text-indigo-600',
-      bgColor: 'bg-indigo-50 border-indigo-100',
-      badge: 'All Sessions',
-    },
-    {
-      title: 'Completed Tests',
-      value: data.cards.completedTests,
-      icon: CheckCircle2,
-      color: 'text-emerald-600',
-      bgColor: 'bg-emerald-50 border-emerald-100',
-      badge: `${data.cards.totalAssessments > 0 ? Math.round((data.cards.completedTests / data.cards.totalAssessments) * 100) : 0}% rate`,
-    },
-    {
-      title: 'Pending Tests',
-      value: data.cards.pendingTests,
-      icon: Clock,
-      color: 'text-amber-600',
-      bgColor: 'bg-amber-50 border-amber-100',
-      badge: 'In Progress',
-    },
-    {
-      title: 'Total Reports',
-      value: data.cards.totalReports,
-      icon: FileText,
-      color: 'text-teal-600',
-      bgColor: 'bg-teal-50 border-teal-100',
-      badge: 'Generated',
-    },
+    { label: 'Registered Patients', value: data?.cards.totalPatients ?? 0, icon: Users },
+    { label: 'Assessment Sessions', value: data?.cards.totalAssessments ?? 0, icon: ClipboardList },
+    { label: 'Completed & Scored', value: data?.cards.completedTests ?? 0, icon: FileText },
+    { label: 'Open Sessions', value: data?.cards.pendingTests ?? 0, icon: Clock3 },
   ];
 
   return (
-    <div className="space-y-8">
-      {/* Top Banner & Quick Actions */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-6">
+    <div className="space-y-6 pb-12">
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-brand-50 text-brand-700 border border-brand-200 mb-2">
-            <Brain className="w-3.5 h-3.5" />
-            K.I.E.I. Psychometric Assessment System
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-            Clinical Operations Dashboard
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+            Clinical Operations & Inventory Overview
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            Authoritative Kundu Introversion-Extraversion Inventory (K.I.E.I.) management platform.
+          <p className="mt-1 text-sm text-slate-500">
+            Live patient management and K.I.E.I. psychometric assessment workflow.
           </p>
         </div>
-
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <button
+            type="button"
             onClick={loadData}
             disabled={loading}
-            className="p-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors shadow-xs"
-            title="Refresh from MongoDB"
+            className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
           >
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-brand-600' : ''}`} />
+            <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} /> Refresh
           </button>
-
-          <Link
-            to="/patients"
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-700 text-xs font-bold hover:bg-slate-50 transition-all shadow-xs"
-          >
-            <UserPlus className="w-4 h-4 text-brand-600" />
-            Register Patient
-          </Link>
-
           <Link
             to="/assessments/new"
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold transition-all shadow-sm"
+            className="rounded-lg bg-teal-600 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-teal-700"
           >
-            <PlayCircle className="w-4 h-4" />
-            Start Assessment
+            + Start Assessment
           </Link>
         </div>
-      </div>
+      </header>
 
-      {/* 5 Main Dashboard Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-        {cards.map((c) => {
-          const Icon = c.icon;
-          return (
-            <div
-              key={c.title}
-              className="bg-white rounded-xl border border-slate-200 p-5 shadow-xs hover:shadow-md transition-shadow"
-            >
-              <div className="flex items-center justify-between mb-3">
-                <div className={`p-2.5 rounded-lg border ${c.bgColor}`}>
-                  <Icon className={`w-5 h-5 ${c.color}`} />
-                </div>
-                <span className="text-[11px] font-semibold text-slate-500 px-2 py-0.5 rounded-full bg-slate-50 border border-slate-100">
-                  {c.badge}
-                </span>
-              </div>
-              <div className="text-2xl font-black text-slate-900 tracking-tight">
-                {loading ? '...' : c.value}
-              </div>
-              <div className="text-xs font-medium text-slate-500 mt-0.5">{c.title}</div>
-            </div>
-          );
-        })}
-      </div>
+      {error && (
+        <div
+          role="alert"
+          className="flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800"
+        >
+          <AlertCircle className="h-4 w-4 shrink-0 text-rose-600" />
+          {error}
+        </div>
+      )}
 
-      {/* Two Column Layout: Activity Charts & Tables */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left Column (2 Cols wide on lg screens) */}
-        <div className="lg:col-span-2 space-y-8">
-          {/* Recent Assessments Card */}
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
-            <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-              <div>
-                <h2 className="text-base font-bold text-slate-900">Recent Assessments</h2>
-                <p className="text-xs text-slate-500">Latest active and completed K.I.E.I. test sessions</p>
-              </div>
-              <Link
-                to="/assessments"
-                className="text-xs font-bold text-brand-600 hover:text-brand-700 flex items-center gap-1"
-              >
-                View All <ArrowRight className="w-3.5 h-3.5" />
-              </Link>
-            </div>
-
-            <div className="overflow-x-auto">
-              {data.recentAssessments && data.recentAssessments.length > 0 ? (
-                <table className="w-full text-left text-xs text-slate-600">
-                  <thead className="bg-slate-50 text-slate-500 font-semibold border-b border-slate-100 uppercase tracking-wider text-[10px]">
-                    <tr>
-                      <th className="px-6 py-3">Patient</th>
-                      <th className="px-6 py-3">Session ID</th>
-                      <th className="px-6 py-3">Administration</th>
-                      <th className="px-6 py-3">Status</th>
-                      <th className="px-6 py-3 text-right">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {data.recentAssessments.map((session) => (
-                      <tr key={session._id} className="hover:bg-slate-50/60 transition-colors">
-                        <td className="px-6 py-4 font-medium text-slate-900">
-                          {session.patient?.fullName || 'Anonymous Patient'}
-                          <span className="block text-[11px] text-slate-400 font-mono">
-                            {session.patient?.patientId || 'N/A'}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 font-mono text-slate-500">{session.sessionId}</td>
-                        <td className="px-6 py-4 capitalize">{session.administrationMethod}</td>
-                        <td className="px-6 py-4">
-                          <span
-                            className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${
-                              session.status === 'completed'
-                                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                                : 'bg-amber-50 text-amber-700 border border-amber-200'
-                            }`}
-                          >
-                            {session.status}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 text-right">
-                          <Link
-                            to={`/kiei-test?session=${session.sessionId}`}
-                            className="text-xs font-semibold text-brand-600 hover:underline"
-                          >
-                            Open
-                          </Link>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              ) : (
-                <div className="p-8 text-center text-slate-400 text-xs">
-                  <ClipboardList className="w-8 h-8 mx-auto mb-2 text-slate-300" />
-                  <p className="font-semibold text-slate-600">No assessments recorded yet in MongoDB</p>
-                  <p className="mt-1">Click "Start Assessment" to begin your first K.I.E.I. session.</p>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Monthly Assessment Activity Card */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-100">
-              <div>
-                <h2 className="text-base font-bold text-slate-900">Monthly Assessment Volume</h2>
-                <p className="text-xs text-slate-500">6-Month historical trend across clinical sessions</p>
-              </div>
-              <span className="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200">
-                <Calendar className="w-3.5 h-3.5 text-slate-400" /> Real-time Atlas Query
+      {/* KPI Cards */}
+      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {cards.map(({ label, value, icon: Icon }) => (
+          <article key={label} className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                {label}
               </span>
+              <Icon className="h-5 w-5 text-teal-600" />
             </div>
+            <p className="mt-3 text-3xl font-black text-slate-900">{loading ? '—' : value}</p>
+          </article>
+        ))}
+      </section>
 
-            <div className="mt-6 h-48 flex items-end justify-between gap-4 px-4">
-              {['May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct'].map((month, idx) => (
-                <div key={month} className="flex-1 flex flex-col items-center gap-2">
-                  <div className="w-full bg-slate-100 rounded-t-lg h-32 flex items-end justify-center p-1">
-                    <div
-                      className="w-full bg-brand-500 rounded-t transition-all hover:bg-brand-600"
-                      style={{
-                        height: `${Math.max(10, ((idx + 1) * 15) % 100)}%`,
-                      }}
-                      title={`${month}: Recorded`}
-                    />
-                  </div>
-                  <span className="text-[11px] font-semibold text-slate-500">{month}</span>
+      {/* Graphs & Instrument Status Grid */}
+      <div className="grid gap-6 lg:grid-cols-3">
+        <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm lg:col-span-2">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div>
+              <h2 className="font-semibold text-slate-900">Assessment Throughput by Month</h2>
+              <p className="text-xs text-slate-500">Monthly sessions recorded in MongoDB Atlas.</p>
+            </div>
+            <Link
+              to="/assessments"
+              className="inline-flex items-center gap-1 text-xs font-semibold text-teal-700 hover:text-teal-800"
+            >
+              All sessions <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+          <div className="mt-6 grid h-44 grid-cols-6 items-end gap-3">
+            {months.map((month) => (
+              <div key={month.label} className="flex h-full flex-col items-center justify-end gap-2">
+                <span className="text-xs font-semibold text-slate-600">{month.count}</span>
+                <div className="flex h-28 w-full items-end rounded-t bg-slate-100">
+                  <div
+                    className="w-full rounded-t bg-teal-600 transition-all duration-500"
+                    style={{
+                      height: `${month.count ? Math.max(8, (month.count / maxMonthlyCount) * 100) : 0}%`,
+                    }}
+                    aria-label={`${month.label}: ${month.count} sessions`}
+                  />
                 </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Right Column (1 Col wide) */}
-        <div className="space-y-8">
-          {/* Recent Patients Card */}
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
-            <div className="p-5 border-b border-slate-100 flex items-center justify-between">
-              <div>
-                <h2 className="text-sm font-bold text-slate-900">Recent Patients</h2>
-                <p className="text-[11px] text-slate-500">Registered in MongoDB Atlas</p>
+                <span className="text-xs font-medium text-slate-500">{month.label}</span>
               </div>
-              <Link
-                to="/patients"
-                className="text-xs font-bold text-brand-600 hover:text-brand-700"
-              >
-                View All
-              </Link>
-            </div>
-
-            <div className="p-4 divide-y divide-slate-100">
-              {data.recentPatients && data.recentPatients.length > 0 ? (
-                data.recentPatients.map((p) => (
-                  <div key={p._id} className="py-3 flex items-center justify-between text-xs">
-                    <div>
-                      <p className="font-bold text-slate-800">{p.fullName}</p>
-                      <p className="text-[11px] text-slate-400">
-                        {p.patientId} • {p.gender}, {p.age || 'N/A'} yrs
-                      </p>
-                    </div>
-                    <span className="text-[11px] font-mono text-slate-500">{p.mobile}</span>
-                  </div>
-                ))
-              ) : (
-                <div className="py-8 text-center text-slate-400 text-xs">
-                  <Users className="w-7 h-7 mx-auto mb-1.5 text-slate-300" />
-                  <p className="font-semibold text-slate-600">No patients registered yet</p>
-                  <p className="mt-0.5 text-[11px]">Register a patient to begin clinical workflows.</p>
-                </div>
-              )}
-            </div>
+            ))}
           </div>
+        </section>
 
-          {/* Introversion / Extraversion Classification Distribution */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs">
-            <h2 className="text-sm font-bold text-slate-900 mb-1">
-              Personality Distribution
-            </h2>
-            <p className="text-xs text-slate-500 mb-4">
-              K.I.E.I. C-Scale Norm Classifications (Verified Submissions)
-            </p>
-
-            {data.distributionStats && data.distributionStats.length > 0 ? (
-              <div className="space-y-3">
-                {data.distributionStats.map((item) => (
-                  <div key={item._id} className="text-xs">
-                    <div className="flex justify-between font-semibold text-slate-700 mb-1">
-                      <span>{item._id}</span>
-                      <span>{item.count}</span>
-                    </div>
-                    <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                      <div
-                        className="bg-brand-600 h-full rounded-full"
-                        style={{
-                          width: `${Math.min(100, item.count * 20)}%`,
-                        }}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="p-6 bg-slate-50 rounded-xl border border-slate-100 text-center text-xs text-slate-500 space-y-2">
-                <Brain className="w-6 h-6 mx-auto text-slate-400" />
-                <p className="font-medium text-slate-700">Distribution Pending Validated Results</p>
-                <p className="text-[11px] text-slate-400 leading-relaxed">
-                  Per psychometric rules, this chart populates strictly when completed assessments undergo verified scoring (Module 5).
-                </p>
-              </div>
-            )}
+        <section className="rounded-xl border border-teal-200 bg-teal-50/70 p-5 shadow-sm">
+          <div className="flex items-center gap-2 text-teal-800">
+            <span className="flex h-2.5 w-2.5 rounded-full bg-teal-600 animate-pulse" />
+            <h2 className="font-semibold text-teal-950">K.I.E.I. Instrument Active</h2>
           </div>
-
-          {/* K.I.E.I. Authorized Instrument Card */}
-          <div className="bg-slate-900 text-white rounded-2xl p-6 shadow-sm space-y-3">
-            <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-brand-500/20 text-brand-300 border border-brand-500/30">
-              Authorized Standard
-            </div>
-            <h3 className="text-sm font-bold text-white">Kundu Introversion Extraversion Inventory</h3>
-            <p className="text-xs text-slate-300 leading-relaxed">
-              Standardized psychometric tool developed by Dr. Ramanath Kundu (Calcutta University, 1976) for Indian adult populations.
-            </p>
-            <div className="pt-3 border-t border-slate-800 text-[11px] text-slate-400 space-y-1">
-              <p>• <strong>70 Questions</strong> across 5 distinct blocks (A to E)</p>
-              <p>• <strong>11-point C-Scale</strong> (Score Range: 70 – 241)</p>
-              <p>• Multi-level response weights & anti-faking design</p>
-            </div>
+          <p className="mt-2 text-xs leading-relaxed text-teal-900">
+            Kundu Introversion–Extraversion Inventory (70 items across Blocks A through E) is fully operational with verified psychometric scoring, Indian standardization norms (N=318), and Table 5 C-Scale mapping.
+          </p>
+          <div className="mt-3 rounded-lg border border-teal-200 bg-white p-3 text-xs">
+            <span className="font-bold text-teal-900">Psychometric Norms:</span>
+            <p className="text-[11px] text-slate-600">Mean: 144.88 • SD: 12.70 • Scale 0–10</p>
           </div>
-        </div>
+          <Link
+            to="/assessments/new"
+            className="mt-4 inline-flex items-center gap-1.5 text-xs font-bold text-teal-900 underline hover:text-teal-950"
+          >
+            Begin new assessment session <ArrowRight className="h-3.5 w-3.5" />
+          </Link>
+        </section>
       </div>
+
+      {/* Recent Sessions */}
+      <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+        <div className="flex items-center justify-between border-b border-slate-100 p-5">
+          <div>
+            <h2 className="font-semibold text-slate-900">Recent Assessment Sessions</h2>
+            <p className="text-xs text-slate-500">Latest activity from clinical practice.</p>
+          </div>
+          <Link to="/assessments" className="text-xs font-semibold text-teal-700 hover:text-teal-800">
+            View all sessions
+          </Link>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[600px] text-left text-sm">
+            <thead className="bg-slate-50 text-xs uppercase tracking-wider text-slate-500 border-b border-slate-100">
+              <tr>
+                <th className="px-5 py-3">Patient</th>
+                <th className="px-5 py-3">Session</th>
+                <th className="px-5 py-3">Administration</th>
+                <th className="px-5 py-3">Status</th>
+                <th className="px-5 py-3 text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {data?.recentAssessments.map((session) => (
+                <tr key={session._id} className="hover:bg-slate-50/70">
+                  <td className="px-5 py-3 font-medium text-slate-900">
+                    {session.patient?.fullName || 'Patient Record'}
+                    <span className="block text-xs text-slate-400">
+                      ID: {session.patient?.patientId || ''}
+                    </span>
+                  </td>
+                  <td className="px-5 py-3 font-mono text-xs text-slate-600">{session.sessionId}</td>
+                  <td className="px-5 py-3 capitalize text-xs text-slate-600">
+                    {session.administrationMethod}
+                  </td>
+                  <td className="px-5 py-3">
+                    <span
+                      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                        session.status === 'completed'
+                          ? 'bg-teal-50 text-teal-700 ring-1 ring-inset ring-teal-600/20'
+                          : 'bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-600/20'
+                      }`}
+                    >
+                      {session.status.replace('_', ' ')}
+                    </span>
+                  </td>
+                  <td className="px-5 py-3 text-right">
+                    {session.status === 'completed' ? (
+                      <Link
+                        to={`/reports?highlight=${session.sessionId}`}
+                        className="text-xs font-semibold text-teal-600 hover:text-teal-800"
+                      >
+                        View Report
+                      </Link>
+                    ) : (
+                      <Link
+                        to={`/kiei-test?session=${session.sessionId}`}
+                        className="text-xs font-semibold text-teal-600 hover:text-teal-800"
+                      >
+                        Resume
+                      </Link>
+                    )}
+                  </td>
+                </tr>
+              ))}
+              {!loading && !data?.recentAssessments?.length && (
+                <tr>
+                  <td colSpan="5" className="px-5 py-8 text-center text-xs text-slate-500">
+                    No assessment sessions recorded yet.
+                  </td>
+                </tr>
+              )}
+              {loading && (
+                <tr>
+                  <td colSpan="5" className="px-5 py-8 text-center text-xs text-slate-500">
+                    Loading…
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </section>
     </div>
   );
 };
 
 export default DashboardView;
-

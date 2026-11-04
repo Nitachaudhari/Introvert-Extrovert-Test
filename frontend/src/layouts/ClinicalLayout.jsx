@@ -12,13 +12,12 @@ import {
   Settings,
   Menu,
   X,
-  Search,
-  Bell,
-  ShieldCheck,
+  LogOut,
   Activity,
   ChevronRight,
 } from 'lucide-react';
 import useSystemStatus from '../hooks/useSystemStatus';
+import { useAuth } from '../context/AuthContext';
 
 const navigationItems = [
   { name: 'Dashboard', path: '/', icon: LayoutDashboard },
@@ -36,6 +35,7 @@ export const ClinicalLayout = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
   const { dbState } = useSystemStatus(30000);
+  const { user, logout } = useAuth();
 
   return (
     <div className="min-h-screen bg-slate-50 flex font-sans text-slate-800 antialiased">
@@ -147,46 +147,29 @@ export const ClinicalLayout = ({ children }) => {
             >
               <Menu className="w-5 h-5" />
             </button>
-            <div className="relative hidden sm:block w-72">
-              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input
-                type="text"
-                placeholder="Search patient, ID, or assessment..."
-                className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-9 pr-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-brand-500 focus:border-brand-500"
-              />
-            </div>
+            <span className="text-sm font-semibold text-slate-700">Clinical Workspace</span>
           </div>
 
           <div className="flex items-center gap-3 sm:gap-4">
-            <div className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
-              <ShieldCheck className="w-3.5 h-3.5" />
-              <span>HIPAA-Ready Architecture</span>
-            </div>
-
-            <button
-              className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 relative"
-              title="Notifications"
-            >
-              <Bell className="w-4 h-4" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-brand-600" />
-            </button>
-
-            <div className="h-6 w-px bg-slate-200" />
-
-            {/* Clinician Profile */}
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-full bg-brand-100 text-brand-700 font-bold flex items-center justify-center text-xs border border-brand-200">
-                CP
+                {(user?.name || 'U').slice(0, 1).toUpperCase()}
               </div>
               <div className="hidden sm:block text-left">
                 <span className="block text-xs font-bold text-slate-800 leading-tight">
-                  Dr. Psychologist
+                  {user?.name}
                 </span>
-                <span className="block text-[10px] text-slate-500 font-medium">
-                  Lead Psychometrist
-                </span>
+                <span className="block text-[10px] capitalize text-slate-500 font-medium">{user?.role}</span>
               </div>
             </div>
+            <button
+              onClick={logout}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50"
+              title="Sign out"
+            >
+              <LogOut className="h-4 w-4" />
+              <span className="hidden sm:inline">Sign out</span>
+            </button>
           </div>
         </header>
 
@@ -200,4 +183,3 @@ export const ClinicalLayout = ({ children }) => {
 };
 
 export default ClinicalLayout;
-

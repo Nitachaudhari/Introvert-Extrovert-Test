@@ -59,7 +59,7 @@ const PatientSchema = new mongoose.Schema(
     },
     consentStatus: {
       type: Boolean,
-      default: true,
+      default: false,
     },
     clinicalNotes: {
       type: String,
@@ -74,12 +74,16 @@ const PatientSchema = new mongoose.Schema(
 // Pre-save hook to calculate age from DOB
 PatientSchema.pre('save', function (next) {
   if (this.dob) {
-    const diffMs = Date.now() - new Date(this.dob).getTime();
-    const ageDt = new Date(diffMs);
-    this.age = Math.abs(ageDt.getUTCFullYear() - 1970);
+    const birthDate = new Date(this.dob);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const beforeBirthday =
+      today.getMonth() < birthDate.getMonth() ||
+      (today.getMonth() === birthDate.getMonth() && today.getDate() < birthDate.getDate());
+    if (beforeBirthday) age -= 1;
+    this.age = age;
   }
   next();
 });
 
 module.exports = mongoose.model('Patient', PatientSchema);
-
