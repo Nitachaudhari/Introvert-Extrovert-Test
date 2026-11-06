@@ -805,3 +805,4 @@ export const C_SCALE_LOCALIZATION = {
     },
   },
 };
+
