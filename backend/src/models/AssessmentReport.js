@@ -24,6 +24,11 @@ const AssessmentReportSchema = new mongoose.Schema(
       type: String,
       default: 'Dr. Parag Mahajan',
     },
+    language: {
+      type: String,
+      enum: ['en', 'hi', 'mr'],
+      default: 'en',
+    },
     observations: {
       type: String,
       default: '',

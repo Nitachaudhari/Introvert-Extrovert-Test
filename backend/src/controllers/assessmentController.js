@@ -42,7 +42,7 @@ const listAssessments = async (req, res, next) => {
  */
 const createAssessment = async (req, res, next) => {
   try {
-    const { patientId, administrationMethod = 'clinician' } = req.body || {};
+    const { patientId, administrationMethod = 'clinician', testLanguage = 'en' } = req.body || {};
 
     if (!patientId) {
       return res.status(400).json({ success: false, message: 'Patient selection is required to start an assessment.' });
@@ -70,6 +70,8 @@ const createAssessment = async (req, res, next) => {
       ? administrationMethod
       : 'clinician';
 
+    const validLang = ['en', 'hi', 'mr'].includes(testLanguage) ? testLanguage : 'en';
+
     const shortId = randomUUID().split('-')[0].toUpperCase();
     const sessionId = `SES-${new Date().getFullYear()}-${shortId}`;
 
@@ -78,6 +80,7 @@ const createAssessment = async (req, res, next) => {
       patient: patient._id,
       testName: 'Kundu Introversion Extraversion Inventory (K.I.E.I.)',
       administrationMethod: validMethod,
+      testLanguage: validLang,
       status: 'in_progress',
       answers: [],
       currentQuestionIndex: 0,
@@ -166,6 +169,9 @@ const saveProgress = async (req, res, next) => {
 
     session.answers = formattedAnswers;
     session.currentQuestionIndex = Math.max(0, Math.min(69, Number(currentQuestionIndex) || 0));
+    if (req.body.testLanguage && ['en', 'hi', 'mr'].includes(req.body.testLanguage)) {
+      session.testLanguage = req.body.testLanguage;
+    }
     session.status = 'in_progress';
     await session.save();
 
@@ -244,6 +250,9 @@ const submitAssessment = async (req, res, next) => {
     session.scoringValidationStatus = 'verified';
     session.status = 'completed';
     session.completedAt = new Date();
+    if (req.body.testLanguage && ['en', 'hi', 'mr'].includes(req.body.testLanguage)) {
+      session.testLanguage = req.body.testLanguage;
+    }
     await session.save();
 
     // Create or update clinical AssessmentReport
@@ -259,6 +268,7 @@ const submitAssessment = async (req, res, next) => {
           patient: session.patient._id,
           psychologistName: req.user?.name || 'Dr. Parag Mahajan',
         },
+        language: session.testLanguage || 'en',
         observations:
           req.body.observations ||
           `Standardized K.I.E.I. administration completed. Patient raw score: ${scoringResult.rawScore}, C-Scale: ${scoringResult.cScaleScore} (${scoringResult.classification}).`,
@@ -319,6 +329,7 @@ const getAssessmentReport = async (req, res, next) => {
         testSession: session._id,
         patient: session.patient._id,
         psychologistName: 'Dr. Parag Mahajan',
+        language: session.testLanguage || 'en',
         observations: 'Standardized assessment completed.',
         interpretation: scoring.isValid ? scoring.interpretationText : '',
       });

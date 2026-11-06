@@ -72,6 +72,9 @@ const KIEITestPage = () => {
         if (!mounted) return;
 
         setSession(data);
+        if (data.testLanguage && ['en', 'hi', 'mr'].includes(data.testLanguage)) {
+          setLanguage(data.testLanguage);
+        }
         if (data.status === 'completed') {
           return;
         }
@@ -122,6 +125,7 @@ const KIEITestPage = () => {
           await saveAssessmentProgress(sessionId, {
             answers: formatted,
             currentQuestionIndex: newIndex,
+            testLanguage: language,
           });
 
           setSyncStatus('synced');
@@ -201,8 +205,11 @@ const KIEITestPage = () => {
         selectedOption: opt,
       }));
 
-      await submitAssessment(sessionId, { answers: formatted });
-      navigate(`/reports?highlight=${sessionId}`);
+      await submitAssessment(sessionId, {
+        answers: formatted,
+        testLanguage: language,
+      });
+      navigate(`/reports?highlight=${sessionId}&lang=${language}`);
     } catch (err) {
       setSubmitError(
         err.response?.data?.message || err.message || 'Scoring validation failed.'

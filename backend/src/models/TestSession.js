@@ -48,6 +48,11 @@ const TestSessionSchema = new mongoose.Schema(
       enum: ['self', 'clinician'],
       default: 'clinician',
     },
+    testLanguage: {
+      type: String,
+      enum: ['en', 'hi', 'mr'],
+      default: 'en',
+    },
     status: {
       type: String,
       enum: ['pending', 'in_progress', 'completed'],
