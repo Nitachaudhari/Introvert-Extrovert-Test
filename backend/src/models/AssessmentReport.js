@@ -22,7 +22,7 @@ const AssessmentReportSchema = new mongoose.Schema(
     },
     psychologistName: {
       type: String,
-      default: 'Dr. Clinical Psychologist',
+      default: 'Dr. Parag Mahajan',
     },
     observations: {
       type: String,

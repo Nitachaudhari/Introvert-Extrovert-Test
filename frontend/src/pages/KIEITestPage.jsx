@@ -13,26 +13,29 @@ import {
   Eye,
   Lock,
   ArrowLeft,
+  Globe2,
 } from 'lucide-react';
-import { KIEI_QUESTIONS, BLOCK_METADATA } from '../data/kieiQuestions';
+import { KIEI_QUESTIONS } from '../data/kieiQuestions';
+import {
+  UI_TRANSLATIONS,
+  BLOCK_GUIDES,
+  STANDARD_OPTIONS,
+  QUESTION_LOCALIZATION,
+} from '../data/kieiTranslations';
 import {
   fetchAssessment,
   saveAssessmentProgress,
   submitAssessment,
 } from '../services/api';
 
-const SECTION_FRIENDLY_NAMES = {
-  A: { title: 'Part 1: Daily Activities & Situations', tip: 'Choose the one answer that suits you best.' },
-  B: { title: 'Part 2: Interests & Attitudes', tip: 'Indicate how much you like or dislike each item.' },
-  C: { title: 'Part 3: Activity Preferences', tip: 'Choose between the two activities or no preference.' },
-  D: { title: 'Part 4: Personal Experiences', tip: 'Indicate whether this is true in most cases, not true, or some cases.' },
-  E: { title: 'Part 5: Habits & Dispositions', tip: 'Choose whether this is applicable to you (Yes or No).' },
-};
-
 const KIEITestPage = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const sessionId = searchParams.get('session');
+
+  const [language, setLanguage] = useState(
+    () => localStorage.getItem('kiei_test_lang') || 'en'
+  );
 
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -46,6 +49,13 @@ const KIEITestPage = () => {
   const [submitError, setSubmitError] = useState('');
 
   const saveTimerRef = useRef(null);
+
+  const handleLanguageChange = (lang) => {
+    setLanguage(lang);
+    localStorage.setItem('kiei_test_lang', lang);
+  };
+
+  const ui = UI_TRANSLATIONS[language] || UI_TRANSLATIONS.en;
 
   // Fetch initial session
   useEffect(() => {
@@ -165,7 +175,22 @@ const KIEITestPage = () => {
 
   const currentQuestion = KIEI_QUESTIONS[currentIndex];
   const currentBlock = currentQuestion?.block;
-  const sectionInfo = SECTION_FRIENDLY_NAMES[currentBlock] || { title: `Section ${currentBlock}`, tip: '' };
+
+  // Localized Question & Options
+  const localizedQ = QUESTION_LOCALIZATION[currentQuestion?.number]?.[language];
+  const questionText = localizedQ?.text || currentQuestion?.text;
+
+  let displayOptions = currentQuestion?.options || [];
+  if (language !== 'en') {
+    if (currentBlock === 'A' && localizedQ?.options) {
+      displayOptions = localizedQ.options;
+    } else if (STANDARD_OPTIONS[currentBlock]?.[language]) {
+      displayOptions = STANDARD_OPTIONS[currentBlock][language];
+    }
+  }
+
+  const sectionGuide =
+    BLOCK_GUIDES[currentBlock]?.[language] || BLOCK_GUIDES[currentBlock]?.en || { title: `Section ${currentBlock}`, tip: '' };
 
   const handleFinalSubmit = async () => {
     setSubmitting(true);
@@ -252,41 +277,80 @@ const KIEITestPage = () => {
 
   return (
     <div className="mx-auto max-w-3xl space-y-6 pb-20">
-      {/* Top Patient & Progress Card */}
+      {/* Top Patient, Language & Progress Card */}
       <div className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6 shadow-sm">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">
               <span className="text-xs font-bold text-teal-700 uppercase tracking-wider">
-                K.I.E.I. Personality Test
+                {ui.testTitle}
               </span>
               <span className="text-xs text-slate-300">•</span>
-              <span className="text-xs text-slate-500">
+              <span className="text-xs text-slate-600 font-medium">
                 {session?.patient?.fullName || 'Candidate'}
               </span>
             </div>
-            <h1 className="text-lg font-bold text-slate-900 sm:text-xl mt-0.5">
-              Question {currentIndex + 1} <span className="text-slate-400 font-normal">of 70</span>
+            <h1 className="text-lg font-bold text-slate-900 sm:text-xl mt-1">
+              {ui.questionOf} {currentIndex + 1} <span className="text-slate-400 font-normal">{ui.ofTotal}</span>
             </h1>
           </div>
 
-          <div className="flex items-center gap-2 self-start sm:self-center">
-            <span className="text-xs text-slate-500 font-medium">
-              {answeredCount} of 70 answered
-            </span>
+          {/* Language Selector Toggle */}
+          <div className="flex items-center gap-2 self-start sm:self-center bg-slate-100 p-1 rounded-xl">
+            <Globe2 className="h-4 w-4 text-slate-500 ml-1.5" />
             <button
               type="button"
-              onClick={() => setShowPalette(!showPalette)}
-              className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+              onClick={() => handleLanguageChange('en')}
+              className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                language === 'en'
+                  ? 'bg-white text-teal-800 shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
             >
-              <ListOrdered className="h-3.5 w-3.5" />
-              {showPalette ? 'Hide Questions' : 'Jump to Question'}
+              English
+            </button>
+            <button
+              type="button"
+              onClick={() => handleLanguageChange('hi')}
+              className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                language === 'hi'
+                  ? 'bg-white text-teal-800 shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              हिन्दी
+            </button>
+            <button
+              type="button"
+              onClick={() => handleLanguageChange('mr')}
+              className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                language === 'mr'
+                  ? 'bg-white text-teal-800 shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              मराठी
             </button>
           </div>
         </div>
 
+        {/* Status bar */}
+        <div className="mt-4 flex items-center justify-between text-xs text-slate-500">
+          <span>
+            {answeredCount} {ui.ofTotal} {ui.answered}
+          </span>
+          <button
+            type="button"
+            onClick={() => setShowPalette(!showPalette)}
+            className="inline-flex items-center gap-1 text-xs font-semibold text-teal-700 hover:text-teal-800"
+          >
+            <ListOrdered className="h-3.5 w-3.5" />
+            {showPalette ? ui.hideJump : ui.jumpToQuestion}
+          </button>
+        </div>
+
         {/* Progress Bar */}
-        <div className="mt-4 h-2.5 w-full overflow-hidden rounded-full bg-slate-100">
+        <div className="mt-2 h-2.5 w-full overflow-hidden rounded-full bg-slate-100">
           <div
             className="h-full rounded-full bg-teal-600 transition-all duration-300"
             style={{ width: `${progressPercent}%` }}
@@ -296,7 +360,7 @@ const KIEITestPage = () => {
         {/* Collapsible Question Jump Grid */}
         {showPalette && (
           <div className="mt-5 border-t border-slate-100 pt-4">
-            <p className="text-xs font-semibold text-slate-600 mb-2">Click any number to jump:</p>
+            <p className="text-xs font-semibold text-slate-600 mb-2">{ui.clickToJump}</p>
             <div className="grid grid-cols-10 gap-1.5 sm:grid-cols-14">
               {KIEI_QUESTIONS.map((q, idx) => {
                 const hasAnswer = answers[q.number] !== undefined;
@@ -324,9 +388,9 @@ const KIEITestPage = () => {
       </div>
 
       {/* Section Helper Banner */}
-      <div className="rounded-xl border border-teal-100 bg-teal-50/60 p-4">
-        <p className="text-xs font-bold text-teal-900 uppercase tracking-wider">{sectionInfo.title}</p>
-        <p className="text-xs text-slate-600 mt-0.5">{sectionInfo.tip}</p>
+      <div className="rounded-xl border border-teal-100 bg-teal-50/70 p-4">
+        <p className="text-xs font-bold text-teal-900 uppercase tracking-wider">{sectionGuide.title}</p>
+        <p className="text-xs text-slate-700 mt-0.5 leading-relaxed">{sectionGuide.tip}</p>
       </div>
 
       {/* Question Card */}
@@ -336,13 +400,13 @@ const KIEITestPage = () => {
             {currentQuestion?.number}
           </span>
           <h2 className="text-lg font-medium leading-relaxed text-slate-900 sm:text-xl pt-0.5">
-            {currentQuestion?.text}
+            {questionText}
           </h2>
         </div>
 
         {/* Option Selection Cards */}
         <div className="space-y-3 pt-2">
-          {currentQuestion?.options.map((option, idx) => {
+          {displayOptions.map((option, idx) => {
             const isSelected = answers[currentQuestion.number] === option.value;
             return (
               <button
@@ -363,7 +427,7 @@ const KIEITestPage = () => {
                         : 'border-slate-300 bg-white text-slate-500 group-hover:border-slate-400'
                     }`}
                   >
-                    {isSelected ? '✓' : idx + 1}
+                    {isSelected ? '✓' : currentBlock === 'E' ? option.value : idx + 1}
                   </div>
                   <span
                     className={`text-sm sm:text-base ${
@@ -386,11 +450,11 @@ const KIEITestPage = () => {
             disabled={currentIndex === 0}
             className="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40 transition-colors"
           >
-            <ChevronLeft className="h-4 w-4" /> Previous
+            <ChevronLeft className="h-4 w-4" /> {ui.previous}
           </button>
 
           <div className="flex items-center gap-1 text-[11px] text-slate-400">
-            <Cloud className="h-3.5 w-3.5 text-teal-600" /> Auto-saved
+            <Cloud className="h-3.5 w-3.5 text-teal-600" /> {ui.autoSaved}
           </div>
 
           {currentIndex < 69 ? (
@@ -399,7 +463,7 @@ const KIEITestPage = () => {
               onClick={handleNext}
               className="inline-flex items-center gap-1.5 rounded-xl bg-teal-600 px-6 py-2.5 text-xs font-semibold text-white shadow-sm hover:bg-teal-700 transition-colors"
             >
-              Next <ChevronRight className="h-4 w-4" />
+              {ui.next} <ChevronRight className="h-4 w-4" />
             </button>
           ) : (
             <button
@@ -407,7 +471,7 @@ const KIEITestPage = () => {
               onClick={() => setReviewOpen(true)}
               className="inline-flex items-center gap-2 rounded-xl bg-teal-600 px-6 py-2.5 text-xs font-semibold text-white shadow-md hover:bg-teal-700 transition-colors"
             >
-              <span>Finish & Review</span>
+              <span>{ui.finishReview}</span>
               <Send className="h-4 w-4" />
             </button>
           )}
@@ -421,9 +485,9 @@ const KIEITestPage = () => {
             <div className="border-b border-slate-100 p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-xl font-bold text-slate-900">Review Your Answers</h3>
+                  <h3 className="text-xl font-bold text-slate-900">{ui.reviewTitle}</h3>
                   <p className="mt-1 text-xs text-slate-500">
-                    Patient: {session?.patient?.fullName} • 70 total questions
+                    {ui.reviewSubtitle.replace('{name}', session?.patient?.fullName || '')}
                   </p>
                 </div>
                 <button
@@ -435,14 +499,14 @@ const KIEITestPage = () => {
               </div>
 
               <div className="mt-4 rounded-xl bg-slate-50 p-3.5 flex items-center justify-between text-xs">
-                <span className="text-slate-600 font-medium">Completion status:</span>
+                <span className="text-slate-600 font-medium">{ui.completionStatus}</span>
                 {answeredCount < 70 ? (
                   <span className="font-bold text-rose-600">
-                    ⚠️ {70 - answeredCount} questions not answered yet
+                    {ui.remainingMsg.replace('{count}', String(70 - answeredCount))}
                   </span>
                 ) : (
                   <span className="font-bold text-teal-700">
-                    ✓ All 70 questions answered!
+                    {ui.allAnswered}
                   </span>
                 )}
               </div>
@@ -457,17 +521,30 @@ const KIEITestPage = () => {
             <div className="flex-1 overflow-y-auto p-6 divide-y divide-slate-100">
               {KIEI_QUESTIONS.map((q, idx) => {
                 const ans = answers[q.number];
-                const chosenOption = q.options.find((o) => o.value === ans);
+                const locQ = QUESTION_LOCALIZATION[q.number]?.[language];
+                const qDisplay = locQ?.text || q.text;
+
+                let optDisplay = ans;
+                if (ans !== undefined) {
+                  if (q.block === 'A' && locQ?.options) {
+                    const match = locQ.options.find((o) => o.value === ans);
+                    if (match) optDisplay = match.label;
+                  } else if (STANDARD_OPTIONS[q.block]?.[language]) {
+                    const match = STANDARD_OPTIONS[q.block][language].find((o) => o.value === ans);
+                    if (match) optDisplay = match.label;
+                  }
+                }
+
                 return (
                   <div key={q.number} className="py-2.5 flex items-center justify-between text-xs">
                     <div className="flex items-center gap-2 max-w-md truncate">
                       <span className="font-bold text-slate-500 w-6">#{q.number}</span>
-                      <span className="text-slate-800 truncate">{q.text}</span>
+                      <span className="text-slate-800 truncate">{qDisplay}</span>
                     </div>
                     <div>
                       {ans !== undefined ? (
                         <span className="rounded bg-teal-50 px-2 py-0.5 font-semibold text-teal-800">
-                          {chosenOption?.label?.slice(0, 24) || ans}
+                          {String(optDisplay).slice(0, 24)}
                         </span>
                       ) : (
                         <button
@@ -493,7 +570,7 @@ const KIEITestPage = () => {
                 onClick={() => setReviewOpen(false)}
                 className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"
               >
-                Back to Questions
+                {ui.backToQuestions}
               </button>
 
               <button
@@ -502,7 +579,7 @@ const KIEITestPage = () => {
                 disabled={submitting || answeredCount < 70}
                 className="inline-flex items-center gap-2 rounded-xl bg-teal-600 px-6 py-2.5 text-xs font-semibold text-white shadow hover:bg-teal-700 disabled:opacity-50"
               >
-                {submitting ? 'Scoring…' : 'Submit & View Report'}
+                {submitting ? ui.scoring : ui.submitReport}
               </button>
             </div>
           </div>

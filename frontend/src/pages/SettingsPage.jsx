@@ -18,7 +18,7 @@ const SettingsPage = () => {
     localStorage.getItem('kiei_clinic_name') || 'Department of Clinical Psychology'
   );
   const [leadPsychologist, setLeadPsychologist] = useState(
-    localStorage.getItem('kiei_lead_psychologist') || 'Dr. Clinical Psychologist, Ph.D.'
+    localStorage.getItem('kiei_lead_psychologist') || 'Dr. Parag Mahajan'
   );
   const [savedNotice, setSavedNotice] = useState(false);
 

@@ -1,21 +1,23 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import {
   FileText,
   Printer,
-  Download,
   Search,
   CheckCircle2,
   AlertCircle,
-  User,
   Calendar,
   Layers,
   Award,
-  ChevronRight,
   Save,
   Clock,
   ArrowLeft,
   ShieldAlert,
+  HelpCircle,
+  Sparkles,
+  Check,
+  Stethoscope,
+  HeartHandshake,
 } from 'lucide-react';
 import {
   fetchReports,
@@ -47,7 +49,7 @@ const ReportsPage = () => {
   const [reportLoading, setReportLoading] = useState(false);
   const [error, setError] = useState('');
   const [observationsInput, setObservationsInput] = useState('');
-  const [psychologistNameInput, setPsychologistNameInput] = useState('');
+  const [psychologistNameInput, setPsychologistNameInput] = useState('Dr. Parag Mahajan');
   const [savingNotes, setSavingNotes] = useState(false);
   const [notesSaveSuccess, setNotesSaveSuccess] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -84,7 +86,7 @@ const ReportsPage = () => {
         const data = await fetchAssessmentReport(highlightedSession);
         setActiveReportData(data);
         setObservationsInput(data.report?.observations || '');
-        setPsychologistNameInput(data.report?.psychologistName || 'Dr. Clinical Psychologist');
+        setPsychologistNameInput(data.report?.psychologistName || 'Dr. Parag Mahajan');
       } catch (err) {
         setError('Failed to load clinical report for session ' + highlightedSession);
       } finally {
@@ -141,13 +143,17 @@ const ReportsPage = () => {
     );
   });
 
+  const cScaleDetails = activeReportData?.scoringSummary?.cScaleDetails;
+  const cPoint = activeReportData?.scoringSummary?.cScaleScore;
+  const isSevereOrMarked = cPoint <= 1 || cPoint >= 9;
+
   return (
     <div className="space-y-6 pb-16">
       {/* If viewing a single report */}
       {activeReportData ? (
-        <div className="space-y-6">
+        <div className="space-y-6 max-w-5xl mx-auto">
           {/* Action Bar (Hidden in Print) */}
-          <div className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm print:hidden sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm print:hidden sm:flex-row sm:items-center sm:justify-between">
             <button
               onClick={handleBackToList}
               className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900"
@@ -161,39 +167,41 @@ const ReportsPage = () => {
               </span>
               <button
                 onClick={handlePrint}
-                className="inline-flex items-center gap-2 rounded-lg bg-teal-600 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-teal-700"
+                className="inline-flex items-center gap-2 rounded-xl bg-teal-600 px-5 py-2 text-xs font-semibold text-white shadow hover:bg-teal-700 transition-colors"
               >
-                <Printer className="h-4 w-4" /> Print / Export PDF
+                <Printer className="h-4 w-4" /> Print / Export Clinical PDF
               </button>
             </div>
           </div>
 
           {/* Clinical Document Container (Printable) */}
-          <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm print:border-none print:p-0 print:shadow-none">
+          <div className="rounded-2xl border border-slate-200 bg-white p-8 sm:p-10 shadow-sm print:border-none print:p-0 print:shadow-none space-y-8">
             {/* Clinic Brand & Document Header */}
-            <div className="border-b-2 border-teal-800 pb-6 text-center">
-              <div className="inline-block rounded-md bg-teal-50 px-3 py-1 font-mono text-xs font-bold text-teal-800">
+            <div className="border-b-2 border-teal-800 pb-6 text-center space-y-2">
+              <div className="inline-block rounded-md bg-teal-50 px-3.5 py-1 font-mono text-xs font-bold text-teal-800">
                 CLINICAL PSYCHOMETRIC EVALUATION REPORT
               </div>
-              <h1 className="mt-2 text-2xl font-black tracking-tight text-slate-900 sm:text-3xl">
+              <h1 className="text-2xl font-black tracking-tight text-slate-900 sm:text-3xl">
                 Kundu Introversion–Extraversion Inventory (K.I.E.I.)
               </h1>
-              <p className="mt-1 text-xs text-slate-600">
-                Department of Psychology, University of Calcutta (Standardized Psychometric Instrument)
+              <p className="text-xs text-slate-600">
+                Department of Psychology, University of Calcutta • Standardized Psychometric Assessment
               </p>
-              <div className="mt-2 flex items-center justify-center gap-4 text-[11px] text-slate-400">
-                <span>Standardization Sample: N = 318</span>
+              <div className="flex flex-wrap items-center justify-center gap-3 text-xs text-slate-500 pt-1">
+                <span className="font-semibold text-teal-800">Supervising Doctor: {psychologistNameInput}</span>
                 <span>•</span>
-                <span>Norm Mean: 144.88 (SD: 12.70)</span>
+                <span>Norm Baseline N = 318</span>
                 <span>•</span>
-                <span>Standard Score: 11-Point C-Scale</span>
+                <span>Norm Mean: 144.88 (SD 12.70)</span>
+                <span>•</span>
+                <span>11-Point C-Scale Metric</span>
               </div>
             </div>
 
             {/* Candidate Demographics */}
-            <div className="mt-6 rounded-xl border border-slate-200 bg-slate-50/70 p-5">
+            <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-5">
               <h3 className="text-xs font-bold uppercase tracking-wider text-teal-800">
-                Candidate Demographics & Administration
+                Candidate Demographics & Administration Record
               </h3>
               <div className="mt-3 grid grid-cols-2 gap-4 text-xs sm:grid-cols-4">
                 <div>
@@ -235,11 +243,11 @@ const ReportsPage = () => {
                 <div>
                   <span className="text-slate-400">Administration Mode:</span>
                   <p className="font-bold capitalize text-slate-800">
-                    {activeReportData.session?.administrationMethod || 'Clinician-Administered'}
+                    {activeReportData.session?.administrationMethod === 'self' ? 'Patient Direct Test' : 'Clinician Administered'}
                   </p>
                 </div>
                 <div>
-                  <span className="text-slate-400">Date Assessed:</span>
+                  <span className="text-slate-400">Assessment Date:</span>
                   <p className="font-bold text-slate-800">
                     {new Date(activeReportData.session?.completedAt || Date.now()).toLocaleDateString(undefined, {
                       year: 'numeric',
@@ -252,7 +260,7 @@ const ReportsPage = () => {
             </div>
 
             {/* Primary Scores Banner */}
-            <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
               <div className="rounded-xl border border-teal-200 bg-teal-50/50 p-5 text-center">
                 <span className="text-xs font-semibold text-teal-800 uppercase tracking-wider">
                   Total Raw Score
@@ -260,7 +268,7 @@ const ReportsPage = () => {
                 <p className="mt-2 text-4xl font-black text-teal-950">
                   {activeReportData.scoringSummary?.rawScore}
                 </p>
-                <p className="mt-1 text-[11px] text-teal-700">Theoretical Range: 70 – 241</p>
+                <p className="mt-1 text-[11px] text-teal-700">Range: 70 – 241 (Sum of 5 Blocks)</p>
               </div>
 
               <div className="rounded-xl border border-teal-200 bg-teal-50/50 p-5 text-center">
@@ -270,26 +278,42 @@ const ReportsPage = () => {
                 <p className="mt-2 text-4xl font-black text-teal-950">
                   Point {activeReportData.scoringSummary?.cScaleScore}
                 </p>
-                <p className="mt-1 text-[11px] text-teal-700">11-Point Standard Continuum (0–10)</p>
+                <p className="mt-1 text-[11px] text-teal-700">11-Point Standard Metric (0–10)</p>
               </div>
 
               <div className="rounded-xl border border-teal-200 bg-teal-50/50 p-5 text-center">
                 <span className="text-xs font-semibold text-teal-800 uppercase tracking-wider">
-                  Clinical Classification
+                  Personality Classification
                 </span>
                 <p className="mt-2 text-2xl font-black text-teal-950">
                   {activeReportData.scoringSummary?.classification}
                 </p>
-                <p className="mt-1 text-[11px] text-teal-700">
-                  Normative Z-Score: {activeReportData.scoringSummary?.zScore > 0 ? '+' : ''}
-                  {activeReportData.scoringSummary?.zScore} σ
+                <p className="mt-1 text-[11px] font-semibold text-teal-800">
+                  {cScaleDetails?.severityLevel || 'Standard Continuum'}
                 </p>
               </div>
             </div>
 
-            {/* Visual 11-Point C-Scale Continuum */}
-            <div className="mt-8 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            {/* Severe / Marked Deviation Alert if Applicable */}
+            {isSevereOrMarked && (
+              <div className="rounded-xl border border-amber-300 bg-amber-50/80 p-5 flex items-start gap-3.5">
+                <ShieldAlert className="h-6 w-6 text-amber-700 shrink-0 mt-0.5" />
+                <div className="space-y-1 text-xs text-amber-950">
+                  <h4 className="font-bold text-sm text-amber-900">
+                    Clinical Attention Recommended: Marked Continuum Deviation
+                  </h4>
+                  <p className="leading-relaxed">
+                    The candidate’s score falls in an extreme or marked range ({cPoint <= 1 ? 'Extreme Extraversion' : 'Extreme Introversion'}).
+                    While K.I.E.I. measures non-pathological personality traits, extreme scores can predispose individuals to social exhaustion,
+                    interpersonal barriers, or avoidance tendencies. Follow the targeted coping solutions outlined below and consult with Dr. Parag Mahajan.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Visual 11-Point C-Scale Continuum Profile */}
+            <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs space-y-3">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-2">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700">
                   11-Point C-Scale Continuum Profile
                 </h4>
@@ -298,8 +322,7 @@ const ReportsPage = () => {
                 </span>
               </div>
 
-              {/* Band Bars */}
-              <div className="mt-4 grid grid-cols-11 gap-1 text-center">
+              <div className="grid grid-cols-11 gap-1 text-center">
                 {C_SCALE_BANDS.map((band) => {
                   const isCurrent = band.point === activeReportData.scoringSummary?.cScaleScore;
                   return (
@@ -320,11 +343,7 @@ const ReportsPage = () => {
                       >
                         {band.point <= 3 ? 'Extravert' : band.point <= 6 ? 'Ambivert' : 'Introvert'}
                       </span>
-                      <span
-                        className={`text-[8px] ${
-                          isCurrent ? 'text-teal-100' : 'text-slate-400'
-                        }`}
-                      >
+                      <span className={`text-[8px] ${isCurrent ? 'text-teal-100' : 'text-slate-400'}`}>
                         {band.range}
                       </span>
                     </div>
@@ -333,21 +352,80 @@ const ReportsPage = () => {
               </div>
             </div>
 
+            {/* Detailed Personality Explanation */}
+            <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-6 space-y-4">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-teal-800">
+                Detailed In-Depth Psychological Explanation
+              </h4>
+              <p className="text-xs sm:text-sm text-slate-800 leading-relaxed">
+                {cScaleDetails?.detailedExplanation || activeReportData.report?.interpretation}
+              </p>
+              {cScaleDetails?.dailyLifeImpact && (
+                <div className="rounded-lg bg-white p-4 border border-slate-200">
+                  <span className="text-xs font-bold text-slate-700 block mb-1">Impact on Daily Life & Interactions:</span>
+                  <p className="text-xs text-slate-600 leading-relaxed">
+                    {cScaleDetails.dailyLifeImpact}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Potential Vulnerabilities / Challenges */}
+            {cScaleDetails?.potentialVulnerabilities && cScaleDetails.potentialVulnerabilities.length > 0 && (
+              <div className="rounded-xl border border-amber-200 bg-amber-50/50 p-6 space-y-3">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-amber-900 flex items-center gap-1.5">
+                  <AlertCircle className="h-4 w-4 text-amber-700" />
+                  Potential Challenges & Vulnerabilities to Watch For
+                </h4>
+                <ul className="space-y-2 text-xs text-slate-700">
+                  {cScaleDetails.potentialVulnerabilities.map((vuln, idx) => (
+                    <li key={idx} className="flex items-start gap-2">
+                      <span className="h-1.5 w-1.5 rounded-full bg-amber-600 mt-1.5 shrink-0" />
+                      <span>{vuln}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Actionable Clinical Solutions & Recommendations */}
+            {cScaleDetails?.clinicalSolutions && cScaleDetails.clinicalSolutions.length > 0 && (
+              <div className="rounded-xl border border-teal-200 bg-teal-50/40 p-6 space-y-4">
+                <div className="flex items-center gap-2 border-b border-teal-100 pb-2">
+                  <HeartHandshake className="h-5 w-5 text-teal-700" />
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-teal-900">
+                    Clinical Solutions & Actionable Coping Strategies (Recommended by Dr. Parag Mahajan)
+                  </h4>
+                </div>
+
+                <div className="grid grid-cols-1 gap-3">
+                  {cScaleDetails.clinicalSolutions.map((sol, idx) => (
+                    <div key={idx} className="rounded-xl bg-white p-3.5 border border-teal-100 shadow-2xs flex items-start gap-3">
+                      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-teal-600 text-[11px] font-bold text-white">
+                        {idx + 1}
+                      </span>
+                      <p className="text-xs text-slate-800 leading-relaxed pt-0.5">{sol}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Block-by-Block Dimensional Profile Table */}
-            <div className="mt-8">
+            <div className="space-y-3">
               <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700">
                 Block-by-Block Dimensional Analysis & Normative Comparison
               </h4>
-              <div className="mt-3 overflow-hidden rounded-xl border border-slate-200">
+              <div className="overflow-hidden rounded-xl border border-slate-200">
                 <table className="w-full text-left text-xs">
                   <thead className="bg-slate-100 uppercase text-slate-600">
                     <tr>
-                      <th className="p-3">Block Section</th>
+                      <th className="p-3">Section</th>
                       <th className="p-3">Measurement Dimension</th>
                       <th className="p-3">Items</th>
                       <th className="p-3">Candidate Score</th>
-                      <th className="p-3">Standard Norm Mean (SD)</th>
-                      <th className="p-3">Score Direction</th>
+                      <th className="p-3">Norm Mean (SD)</th>
+                      <th className="p-3">Orientation</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
@@ -359,7 +437,7 @@ const ReportsPage = () => {
                         {activeReportData.scoringSummary?.blockScores?.A}
                       </td>
                       <td className="p-3 text-slate-500">27.86 (SD 3.36)</td>
-                      <td className="p-3 text-slate-700">
+                      <td className="p-3 text-slate-700 font-medium">
                         {activeReportData.scoringSummary?.blockScores?.A > 28 ? 'Introverted' : 'Extraverted'}
                       </td>
                     </tr>
@@ -371,7 +449,7 @@ const ReportsPage = () => {
                         {activeReportData.scoringSummary?.blockScores?.B}
                       </td>
                       <td className="p-3 text-slate-500">42.22 (SD 6.36)</td>
-                      <td className="p-3 text-slate-700">
+                      <td className="p-3 text-slate-700 font-medium">
                         {activeReportData.scoringSummary?.blockScores?.B > 42 ? 'Introverted' : 'Extraverted'}
                       </td>
                     </tr>
@@ -383,7 +461,7 @@ const ReportsPage = () => {
                         {activeReportData.scoringSummary?.blockScores?.C}
                       </td>
                       <td className="p-3 text-slate-500">28.91 (SD 4.14)</td>
-                      <td className="p-3 text-slate-700">
+                      <td className="p-3 text-slate-700 font-medium">
                         {activeReportData.scoringSummary?.blockScores?.C > 29 ? 'Introverted' : 'Extraverted'}
                       </td>
                     </tr>
@@ -395,19 +473,19 @@ const ReportsPage = () => {
                         {activeReportData.scoringSummary?.blockScores?.D}
                       </td>
                       <td className="p-3 text-slate-500">25.48 (SD 3.30)</td>
-                      <td className="p-3 text-slate-700">
+                      <td className="p-3 text-slate-700 font-medium">
                         {activeReportData.scoringSummary?.blockScores?.D > 25 ? 'Introverted' : 'Extraverted'}
                       </td>
                     </tr>
                     <tr>
                       <td className="p-3 font-bold text-teal-800">Block E</td>
-                      <td className="p-3 text-slate-800">Habit & Dispositional Dispositions (Y/N)</td>
+                      <td className="p-3 text-slate-800">Habit & Dispositional Choices (Y/N)</td>
                       <td className="p-3 text-slate-500">Q57–Q70 (14)</td>
                       <td className="p-3 font-bold text-slate-900">
                         {activeReportData.scoringSummary?.blockScores?.E}
                       </td>
                       <td className="p-3 text-slate-500">21.28 (SD 2.43)</td>
-                      <td className="p-3 text-slate-700">
+                      <td className="p-3 text-slate-700 font-medium">
                         {activeReportData.scoringSummary?.blockScores?.E > 21 ? 'Introverted' : 'Extraverted'}
                       </td>
                     </tr>
@@ -416,32 +494,23 @@ const ReportsPage = () => {
               </div>
             </div>
 
-            {/* Psychological Interpretation */}
-            <div className="mt-8 rounded-xl border border-slate-200 bg-slate-50 p-5">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800">
-                Authoritative Psychological Interpretation (Kundu 1976 Standard)
-              </h4>
-              <p className="mt-2 text-xs leading-relaxed text-slate-700">
-                {activeReportData.report?.interpretation || activeReportData.scoringSummary?.cScaleDetails?.interpretation}
-              </p>
-            </div>
-
-            {/* Lead Psychologist Observations (Editable) */}
-            <div className="mt-8 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800">
-                  Clinical Observations & Recommendations
+            {/* Doctor's Custom Clinical Notes (Editable) */}
+            <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs space-y-3">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
+                  <Stethoscope className="h-4 w-4 text-teal-700" />
+                  Dr. Parag Mahajan's Clinical Observations & Personalized Guidance
                 </h4>
                 {notesSaveSuccess && (
                   <span className="text-xs font-bold text-teal-600">✓ Notes Saved!</span>
                 )}
               </div>
 
-              <div className="mt-4 space-y-3 print:hidden">
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div className="space-y-3 print:hidden">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="text-[11px] font-semibold text-slate-600">
-                      Evaluating Psychologist Name:
+                      Evaluating Doctor:
                     </label>
                     <input
                       type="text"
@@ -454,13 +523,13 @@ const ReportsPage = () => {
 
                 <div>
                   <label className="text-[11px] font-semibold text-slate-600">
-                    Clinical Notes & Behavioral Observations:
+                    Clinical Notes, Behavior During Administration & Doctor's Recommendations:
                   </label>
                   <textarea
                     rows={4}
                     value={observationsInput}
                     onChange={(e) => setObservationsInput(e.target.value)}
-                    placeholder="Enter clinical notes, test-taking demeanor, or qualitative observations here…"
+                    placeholder="Enter customized therapeutic observations or tailored guidance for the candidate…"
                     className="mt-1 w-full rounded-lg border border-slate-300 p-3 text-xs focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
                   />
                 </div>
@@ -472,38 +541,35 @@ const ReportsPage = () => {
                     className="inline-flex items-center gap-1.5 rounded-lg bg-teal-600 px-4 py-1.5 text-xs font-semibold text-white hover:bg-teal-700 disabled:opacity-50"
                   >
                     <Save className="h-3.5 w-3.5" />
-                    {savingNotes ? 'Saving…' : 'Save Clinical Observations'}
+                    {savingNotes ? 'Saving…' : 'Save Observations'}
                   </button>
                 </div>
               </div>
 
               {/* Print View of Observations */}
-              <div className="hidden mt-3 print:block text-xs leading-relaxed text-slate-800">
-                <p><strong>Evaluating Psychologist:</strong> {psychologistNameInput}</p>
-                <p className="mt-2 whitespace-pre-wrap">{observationsInput}</p>
+              <div className="hidden mt-3 print:block text-xs leading-relaxed text-slate-800 space-y-1">
+                <p><strong>Evaluating Doctor:</strong> {psychologistNameInput}</p>
+                <p className="whitespace-pre-wrap">{observationsInput || 'Assessment administered and scored according to standardized psychometric guidelines.'}</p>
               </div>
             </div>
 
-            {/* Disclaimer & Official Sign-off Block */}
-            <div className="mt-8 border-t border-slate-200 pt-6">
-              <div className="flex items-start gap-3 rounded-lg bg-amber-50/70 p-3 text-[11px] leading-relaxed text-amber-900 border border-amber-200">
-                <ShieldAlert className="h-4 w-4 shrink-0 text-amber-700 mt-0.5" />
+            {/* Disclaimer & Sign-off Block */}
+            <div className="border-t border-slate-200 pt-6 space-y-6">
+              <div className="flex items-start gap-3 rounded-lg bg-slate-50 p-3.5 text-[11px] leading-relaxed text-slate-600 border border-slate-200">
+                <ShieldAlert className="h-4 w-4 shrink-0 text-slate-500 mt-0.5" />
                 <span>
-                  <strong>Clinical Notice:</strong> This psychometric inventory evaluates non-pathological behavioral
-                  dispositions and personality tendencies on the Introversion-Extraversion dimension. It does not
-                  constitute an independent psychiatric diagnosis or disease classification. Results must be interpreted
-                  in conjunction with comprehensive clinical interviews.
+                  <strong>Clinical Notice:</strong> This psychometric assessment measures behavioral tendencies and preferences along the Introversion-Extraversion dimension. It evaluates personality traits and does not constitute an independent psychiatric diagnosis. For severe emotional distress or persistent social impairment, clinical follow-up with Dr. Parag Mahajan is advised.
                 </span>
               </div>
 
-              <div className="mt-8 flex items-end justify-between text-xs text-slate-600 pt-4">
+              <div className="flex items-end justify-between text-xs text-slate-600 pt-4">
                 <div>
-                  <p>Department of Clinical Psychology</p>
-                  <p className="text-[10px] text-slate-400">Psychometric Assessment Management System</p>
+                  <p className="font-bold text-slate-800">Department of Clinical Psychology</p>
+                  <p className="text-[11px] text-slate-500">Psychometric Assessment Management System</p>
                 </div>
 
                 <div className="text-right">
-                  <div className="border-b border-slate-400 pb-1 w-48 text-center font-serif italic text-slate-800">
+                  <div className="border-b border-slate-400 pb-1 w-52 text-center font-serif italic text-slate-900 text-sm">
                     {psychologistNameInput}
                   </div>
                   <p className="mt-1 text-[10px] text-slate-500">Authorized Clinical Signature & Seal</p>
@@ -513,9 +579,8 @@ const ReportsPage = () => {
           </div>
         </div>
       ) : (
-        /* If browsing reports ledger */
-        <div className="space-y-6">
-          {/* Header */}
+        /* Reports Ledger List */
+        <div className="space-y-6 max-w-6xl mx-auto">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
@@ -528,13 +593,12 @@ const ReportsPage = () => {
 
             <Link
               to="/assessments"
-              className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+              className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
             >
               <Layers className="h-4 w-4" /> View All Sessions
             </Link>
           </div>
 
-          {/* Search bar */}
           <div className="relative">
             <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
             <input
@@ -553,25 +617,24 @@ const ReportsPage = () => {
             </div>
           )}
 
-          {/* Reports Table */}
           <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
             <table className="w-full text-left text-sm">
               <thead className="border-b border-slate-200 bg-slate-50 text-xs font-semibold uppercase tracking-wider text-slate-500">
                 <tr>
-                  <th className="px-6 py-3.5">Report ID</th>
-                  <th className="px-6 py-3.5">Patient Details</th>
-                  <th className="px-6 py-3.5">Raw Score</th>
-                  <th className="px-6 py-3.5">C-Scale Classification</th>
-                  <th className="px-6 py-3.5">Evaluator</th>
-                  <th className="px-6 py-3.5">Generated Date</th>
-                  <th className="px-6 py-3.5 text-right">Actions</th>
+                  <th className="px-6 py-4">Report ID</th>
+                  <th className="px-6 py-4">Patient</th>
+                  <th className="px-6 py-4">Raw Score</th>
+                  <th className="px-6 py-4">C-Scale Classification</th>
+                  <th className="px-6 py-4">Supervising Doctor</th>
+                  <th className="px-6 py-4">Date</th>
+                  <th className="px-6 py-4 text-right">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {loading ? (
                   <tr>
                     <td colSpan="7" className="py-12 text-center text-slate-400">
-                      Loading reports from MongoDB Atlas…
+                      Loading reports…
                     </td>
                   </tr>
                 ) : filteredReports.length === 0 ? (
@@ -604,7 +667,7 @@ const ReportsPage = () => {
                         </span>
                       </td>
                       <td className="px-6 py-4 text-xs text-slate-600">
-                        {report.psychologistName || 'Dr. Clinical Psychologist'}
+                        {report.psychologistName || 'Dr. Parag Mahajan'}
                       </td>
                       <td className="px-6 py-4 text-xs text-slate-500">
                         {new Date(report.createdAt).toLocaleDateString()}
@@ -613,10 +676,10 @@ const ReportsPage = () => {
                         <button
                           type="button"
                           onClick={() => handleSelectReport(report.testSession?.sessionId)}
-                          className="inline-flex items-center gap-1.5 rounded-lg bg-teal-600 px-3.5 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-teal-700"
+                          className="inline-flex items-center gap-1.5 rounded-xl bg-teal-600 px-4 py-1.5 text-xs font-semibold text-white shadow hover:bg-teal-700 transition-colors"
                         >
                           <FileText className="h-3.5 w-3.5" />
-                          View Clinical Report
+                          View Report
                         </button>
                       </td>
                     </tr>

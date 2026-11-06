@@ -43,9 +43,8 @@ export const ClinicalLayout = ({ children }) => {
 
       {/* Sidebar Navigation */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-slate-200 flex flex-col transform transition-transform duration-200 ease-in-out lg:translate-x-0 ${
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-slate-200 flex flex-col transform transition-transform duration-200 ease-in-out lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+          }`}
       >
         {/* Brand / Logo Header */}
         <div className="h-16 px-5 border-b border-slate-200 flex items-center justify-between">
@@ -99,17 +98,15 @@ export const ClinicalLayout = ({ children }) => {
                 key={item.name}
                 to={item.path}
                 onClick={() => setSidebarOpen(false)}
-                className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${
-                  isActive
+                className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${isActive
                     ? 'bg-teal-50 text-teal-800 shadow-sm border border-teal-100'
                     : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-                }`}
+                  }`}
               >
                 <div className="flex items-center gap-3">
                   <Icon
-                    className={`w-4 h-4 ${
-                      isActive ? 'text-teal-600' : 'text-slate-400'
-                    }`}
+                    className={`w-4 h-4 ${isActive ? 'text-teal-600' : 'text-slate-400'
+                      }`}
                   />
                   <span>{item.name}</span>
                 </div>
@@ -127,9 +124,8 @@ export const ClinicalLayout = ({ children }) => {
           >
             <div className="flex items-center gap-2">
               <span
-                className={`w-2.5 h-2.5 rounded-full ${
-                  dbState.status === 'connected' ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'
-                }`}
+                className={`w-2.5 h-2.5 rounded-full ${dbState.status === 'connected' ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'
+                  }`}
               />
               <span className="text-[11px] font-medium text-slate-700">
                 {dbState.status === 'connected' ? 'MongoDB Atlas Live' : 'Database Checking'}

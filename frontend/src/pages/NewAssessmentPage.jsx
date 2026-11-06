@@ -177,11 +177,10 @@ const NewAssessmentPage = () => {
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <label
-              className={`flex cursor-pointer flex-col rounded-xl border p-4 transition-all ${
-                administrationMethod === 'clinician'
+              className={`flex cursor-pointer flex-col rounded-xl border p-4 transition-all ${administrationMethod === 'clinician'
                   ? 'border-teal-600 bg-teal-50/70 ring-2 ring-teal-600'
                   : 'border-slate-200 bg-white hover:border-slate-300'
-              }`}
+                }`}
             >
               <input
                 type="radio"
@@ -198,11 +197,10 @@ const NewAssessmentPage = () => {
             </label>
 
             <label
-              className={`flex cursor-pointer flex-col rounded-xl border p-4 transition-all ${
-                administrationMethod === 'self'
+              className={`flex cursor-pointer flex-col rounded-xl border p-4 transition-all ${administrationMethod === 'self'
                   ? 'border-teal-600 bg-teal-50/70 ring-2 ring-teal-600'
                   : 'border-slate-200 bg-white hover:border-slate-300'
-              }`}
+                }`}
             >
               <input
                 type="radio"

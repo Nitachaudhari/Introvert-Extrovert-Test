@@ -257,7 +257,7 @@ const submitAssessment = async (req, res, next) => {
           reportId,
           testSession: session._id,
           patient: session.patient._id,
-          psychologistName: req.user?.name || 'Dr. Clinical Psychologist',
+          psychologistName: req.user?.name || 'Dr. Parag Mahajan',
         },
         observations:
           req.body.observations ||
@@ -318,7 +318,7 @@ const getAssessmentReport = async (req, res, next) => {
         reportId: `REP-${new Date().getFullYear()}-${reportShortId}`,
         testSession: session._id,
         patient: session.patient._id,
-        psychologistName: 'Dr. Clinical Psychologist',
+        psychologistName: 'Dr. Parag Mahajan',
         observations: 'Standardized assessment completed.',
         interpretation: scoring.isValid ? scoring.interpretationText : '',
       });
