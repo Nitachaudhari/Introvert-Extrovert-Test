@@ -328,17 +328,15 @@ const ReportsPage = () => {
                   return (
                     <div
                       key={band.point}
-                      className={`flex flex-col items-center justify-between rounded-lg p-2 transition-all ${
-                        isCurrent
+                      className={`flex flex-col items-center justify-between rounded-lg p-2 transition-all ${isCurrent
                           ? 'border-2 border-teal-700 bg-teal-600 text-white shadow-md ring-2 ring-teal-300'
                           : 'border border-slate-200 bg-slate-50 text-slate-700'
-                      }`}
+                        }`}
                     >
                       <span className="text-xs font-black">{band.point}</span>
                       <span
-                        className={`text-[9px] font-semibold truncate w-full ${
-                          isCurrent ? 'text-white' : 'text-slate-500'
-                        }`}
+                        className={`text-[9px] font-semibold truncate w-full ${isCurrent ? 'text-white' : 'text-slate-500'
+                          }`}
                         title={band.label}
                       >
                         {band.point <= 3 ? 'Extravert' : band.point <= 6 ? 'Ambivert' : 'Introvert'}

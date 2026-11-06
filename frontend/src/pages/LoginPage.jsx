@@ -21,7 +21,13 @@ const LoginPage = () => {
       await login(email, password);
       navigate('/', { replace: true });
     } catch (requestError) {
-      setError(requestError.response?.data?.message || 'Unable to sign in. Check your connection and try again.');
+      if (requestError.response?.data?.message) {
+        setError(requestError.response.data.message);
+      } else if (requestError.code === 'ERR_NETWORK' || !requestError.response) {
+        setError('Cannot connect to backend server. If testing locally, make sure the backend is running on port 5000.');
+      } else {
+        setError('Unable to sign in. Please check your credentials and try again.');
+      }
     } finally {
       setSubmitting(false);
     }

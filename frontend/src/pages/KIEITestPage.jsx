@@ -301,33 +301,30 @@ const KIEITestPage = () => {
             <button
               type="button"
               onClick={() => handleLanguageChange('en')}
-              className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
-                language === 'en'
+              className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${language === 'en'
                   ? 'bg-white text-teal-800 shadow-xs'
                   : 'text-slate-600 hover:text-slate-900'
-              }`}
+                }`}
             >
               English
             </button>
             <button
               type="button"
               onClick={() => handleLanguageChange('hi')}
-              className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
-                language === 'hi'
+              className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${language === 'hi'
                   ? 'bg-white text-teal-800 shadow-xs'
                   : 'text-slate-600 hover:text-slate-900'
-              }`}
+                }`}
             >
               हिन्दी
             </button>
             <button
               type="button"
               onClick={() => handleLanguageChange('mr')}
-              className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
-                language === 'mr'
+              className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${language === 'mr'
                   ? 'bg-white text-teal-800 shadow-xs'
                   : 'text-slate-600 hover:text-slate-900'
-              }`}
+                }`}
             >
               मराठी
             </button>
@@ -370,13 +367,12 @@ const KIEITestPage = () => {
                     key={q.number}
                     type="button"
                     onClick={() => handleJump(idx)}
-                    className={`h-7 w-7 rounded-lg text-xs font-semibold transition-all ${
-                      isCurrent
+                    className={`h-7 w-7 rounded-lg text-xs font-semibold transition-all ${isCurrent
                         ? 'border-2 border-slate-900 bg-teal-600 text-white font-bold'
                         : hasAnswer
-                        ? 'bg-teal-100 text-teal-800 hover:bg-teal-200'
-                        : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
-                    }`}
+                          ? 'bg-teal-100 text-teal-800 hover:bg-teal-200'
+                          : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+                      }`}
                   >
                     {q.number}
                   </button>
@@ -413,26 +409,23 @@ const KIEITestPage = () => {
                 key={option.value}
                 type="button"
                 onClick={() => handleSelectOption(currentQuestion.number, option.value)}
-                className={`group flex w-full items-center justify-between rounded-xl border p-4 text-left transition-all ${
-                  isSelected
+                className={`group flex w-full items-center justify-between rounded-xl border p-4 text-left transition-all ${isSelected
                     ? 'border-teal-600 bg-teal-50/80 ring-2 ring-teal-600 shadow-sm'
                     : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/60'
-                }`}
+                  }`}
               >
                 <div className="flex items-center gap-3.5">
                   <div
-                    className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-xs font-bold transition-all ${
-                      isSelected
+                    className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-xs font-bold transition-all ${isSelected
                         ? 'border-teal-600 bg-teal-600 text-white'
                         : 'border-slate-300 bg-white text-slate-500 group-hover:border-slate-400'
-                    }`}
+                      }`}
                   >
                     {isSelected ? '✓' : currentBlock === 'E' ? option.value : idx + 1}
                   </div>
                   <span
-                    className={`text-sm sm:text-base ${
-                      isSelected ? 'font-semibold text-teal-950' : 'text-slate-800'
-                    }`}
+                    className={`text-sm sm:text-base ${isSelected ? 'font-semibold text-teal-950' : 'text-slate-800'
+                      }`}
                   >
                     {option.label}
                   </span>
